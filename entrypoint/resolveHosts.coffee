@@ -18,12 +18,13 @@ module.exports = ()->
 				.then (result)-> containers = result
 				.return hosts
 				.map (host)-> resolveHostData(host, containers)
-		
+
 		.catch promiseBreak.end
 
 
 resolveHostData = (host, containers)->
 	host.port ?= 80
+	host.listenport ?= 80
 	extraConf = "./config/vhost.d/#{host.host}.conf"
 	
 	Promise.resolve()
