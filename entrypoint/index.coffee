@@ -3,7 +3,8 @@ promiseBreak = require 'promise-break'
 fs = require 'fs-jetpack'
 execa = require 'execa'
 chalk = require 'chalk'
-nginx = require('which').sync 'nginx'
+docker = require 'docker-promise'
+nginx = require './nginx'
 regex = require './regex'
 
 Promise.resolve()
@@ -11,20 +12,46 @@ Promise.resolve()
 	.each (file)-> fs.writeAsync "/etc/nginx/conf.d/#{file.name}", file.content
 	.then ()-> processFile './config/nginx.conf'
 	.then (conf)-> fs.writeAsync "/etc/nginx/nginx.conf", conf
-	# .then ()-> fs.copyAsync './config/conf.d', '/etc/nginx/conf.d', overwrite:true
-	# .then ()-> fs.copyAsync './config/nginx', '/etc/nginx/nginx.conf', overwrite:true
-	.then require './resolveHosts'
-	.tap (hosts)-> if not hosts.length
-		promiseBreak console.warn("#{chalk.red 'ERR'} no hosts provided under config/hosts.yml")
 	
-	.then require './prepareConfFile'
+	.then ()-> prepareConf()
+	.tap ({hosts, conf})->
+		if not hosts.length
+			console.warn("#{chalk.red 'ERR'} no hosts provided under config/hosts.yml")
+
+		nginx.updateConf(conf)
 	
-	.catch promiseBreak.end
-	.then (conf='')-> fs.writeAsync '/etc/nginx/conf.d/default.conf', conf
-	.then ()-> console.log fs.read('/etc/nginx/conf.d/default.conf')
+	.then (state)->
+		nginx.start(state)
+			.on 'exit', ({err, signal})->
+				if err
+					console.error(err)
+				else if signal
+					console.error new Error("nginx exited with signal #{signal}")
+
+				process.exit(signal or 1)
+
+		docker.events (event)->
+			changedHost = filterDockerEvent(event, state.hosts)
+			return if not changedHost
+			Promise.resolve()
+				.tap ()-> console.log "container #{chalk.dim changedHost.name} has restarted"
+				.then prepareConf
+				.then (result)-> nginx.update(state = result)
+		
+	# .then ()-> console.log fs.read('/etc/nginx/conf.d/default.conf')
 	# .then ()->
 	# 	task = execa(nginx, ['-g','daemon off;'], {stdio:'inherit'})
 	# 	require('p-event')(task, 'exit')
+
+
+
+prepareConf = ()->
+	hosts = null
+	Promise.resolve()
+		.then require './resolveHosts'
+		.then (result)-> hosts = result
+		.then require './prepareConfFile'
+		.then (conf)-> {hosts, conf}
 
 
 processFile = (path)->
@@ -40,4 +67,10 @@ processFiles = (dir)->
 			name: file
 			path: "#{dir}/#{file}"
 			content: processFile("#{dir}/#{file}")
+
+filterDockerEvent = (event, hosts)->
+	event.Type is 'container' and
+	event.Action is 'start' and
+	hosts.find((host)-> host.id is event.id)
+
 

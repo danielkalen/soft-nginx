@@ -2,6 +2,8 @@ fs = require 'fs-jetpack'
 memoize = require 'fast-memoize'
 regex = require './regex'
 TEMPLATES = './config/template'
+# indentString = require 'indent-string'
+# indentString(result, 1, indent:whitespace)
 
 resolveTemplate = (target, data, hosts)->
 	Promise.resolve(target)
