@@ -1,4 +1,4 @@
-exports.env_var = /\$(\w+)/g
+exports.env_var = /\$\{(\w+)\}/g
 exports.command = /\`(.+?)\`/g
 exports.placeholder = /\{\{(.+?)\}\}/g
 exports.import = ///
@@ -7,5 +7,5 @@ exports.import = ///
 	)
 	import
 	\s
-	(\S+?)
+	(\S+)
 ///gm
