@@ -37,11 +37,6 @@ Promise.resolve()
 				.tap ()-> console.log "container #{chalk.dim changedHost.name} has restarted"
 				.then prepareConf
 				.then (result)-> nginx.update(state = result)
-		
-	# .then ()-> console.log fs.read('/etc/nginx/conf.d/default.conf')
-	# .then ()->
-	# 	task = execa(nginx, ['-g','daemon off;'], {stdio:'inherit'})
-	# 	require('p-event')(task, 'exit')
 
 
 

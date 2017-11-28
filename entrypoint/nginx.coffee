@@ -3,6 +3,7 @@ execa = require 'execa'
 chalk = require 'chalk'
 nginx = require('which').sync 'nginx'
 isEqual = require 'sugar/object/isEqual'
+promiseEvent = require 'p-event'
 
 class Nginx extends require('events')
 	constructor: ()->
@@ -17,8 +18,10 @@ class Nginx extends require('events')
 		return @
 
 	stop: ()-> if @task
+		promise = promiseEvent @task, 'exit'
 		@task.killed = true
 		@task.kill()
+		return promise
 
 	restart: (state)->
 		Promise.bind(@)
