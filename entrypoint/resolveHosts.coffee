@@ -38,6 +38,7 @@ resolveHostData = (host, containers)->
 			if not host.address
 				console.error "#{chalk.yellow 'WARN'} container ip address could not be resolved for '#{host.name}', skipping..."
 				host.address = '127.0.0.1'
+				host.exclude = true
 		
 		.then ()-> fs.existsAsync extraConf
 		.then (exists)-> promiseBreak() if not exists
