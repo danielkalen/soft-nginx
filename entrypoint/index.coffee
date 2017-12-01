@@ -21,23 +21,36 @@ Promise.resolve()
 		nginx.updateConf(conf)
 	
 	.then (state)->
-		nginx.start(state)
-			.on 'exit', ({err, signal})->
-				if err
-					console.error(err)
-				else if signal
-					console.error new Error("nginx exited with signal #{signal}")
+		nginx.start(state).on 'exit', handleNginxExit
+		docker.events handleDockerEvent(state)
+		startLogRotate()
 
-				process.exit(signal or 1)
 
-		docker.events (event)->
-			changedHost = filterDockerEvent(event, state.hosts)
-			return if not changedHost
-			Promise.resolve()
-				.tap ()-> console.log "container #{chalk.dim changedHost.name} has restarted"
-				.then prepareConf
-				.then (result)-> nginx.update(state = result)
 
+handleNginxExit = ({err, signal})->
+	if err
+		console.error(err)
+	else if signal
+		console.error "nginx exited with signal #{signal}"
+
+	process.exit(signal or 1)
+
+
+handleDockerEvent = (state)-> (event)->
+	changedHost = filterDockerEvent(event, state.hosts)
+	return if not changedHost
+	Promise.resolve()
+		.tap ()-> console.log "container #{chalk.dim changedHost.name} has restarted"
+		.then prepareConf
+		.then (result)-> nginx.update(state = result)
+
+
+startLogRotate = ()->
+	CronJob = require('cron').CronJob
+	new CronJob
+		cronTime: '0 0 * * *'
+		onTick: ()-> nginx.restart()
+		start: true
 
 
 prepareConf = ()->

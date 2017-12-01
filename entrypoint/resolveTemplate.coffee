@@ -1,6 +1,7 @@
 fs = require 'fs-jetpack'
 memoize = require 'fast-memoize'
 regex = require './regex'
+dateFormat = require 'sugar/date/format'
 TEMPLATES = './config/template'
 # indentString = require 'indent-string'
 # indentString(result, 1, indent:whitespace)
@@ -12,12 +13,14 @@ resolveTemplate = (target, data, hosts)->
 
 
 replace = (content, data, hosts)->
+	globals = datestamp:dateFormat(new Date, '%F')
+	
 	content.replace regex.placeholder, (e,placeholder)->
 		if placeholder[0] is '@'
 			match = hosts.find (host)-> host.name is placeholder.slice(1)
 			return match?.address or ''
 		
-		return data[placeholder] or ''
+		return globals[placeholder] or data[placeholder] or ''
 
 
 getTemplate = memoize (target)->

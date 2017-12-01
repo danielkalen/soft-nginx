@@ -23,7 +23,7 @@ class Nginx extends require('events')
 		@task.kill()
 		return promise
 
-	restart: (state)->
+	restart: (state=@state)->
 		Promise.bind(@)
 			.tap ()-> console.log 'nginx - restarting'
 			.then ()-> @stop()
