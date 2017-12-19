@@ -49,7 +49,7 @@ startLogRotate = ()->
 	CronJob = require('cron').CronJob
 	new CronJob
 		cronTime: '0 0 * * *'
-		onTick: ()-> nginx.restart()
+		onTick: ()-> prepareConf().then (state)-> nginx.restart(state)
 		start: true
 
 
