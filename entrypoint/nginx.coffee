@@ -4,6 +4,8 @@ chalk = require 'chalk'
 nginx = require('which').sync 'nginx'
 isEqual = require 'sugar/object/isEqual'
 promiseEvent = require 'p-event'
+{Tail} = require 'tail'
+ERROR_LOG = '/var/log/nginx/error.log'
 
 class Nginx extends require('events')
 	constructor: ()->
@@ -12,20 +14,23 @@ class Nginx extends require('events')
 		super
 
 	start: (@state)->
+		@followErrors()
 		@task = task = execa(nginx, ['-g','daemon off;'], {stdio:'inherit'})
 		@task.on 'error', (err)=> @emit 'exit', {err} unless task.killed
 		@task.on 'exit', (code)=> @emit 'exit', {code} unless task.killed
+		console.log 'nginx - starting' unless process.env.SILENT
 		return @
 
 	stop: ()-> if @task
 		promise = promiseEvent @task, 'exit'
 		@task.killed = true
 		@task.kill()
+		@unfollowErrors()
 		return promise
 
 	restart: (state=@state)->
 		Promise.bind(@)
-			.tap ()-> console.log 'nginx - restarting'
+			.tap ()-> console.log 'nginx - restarting' unless process.env.SILENT
 			.then ()-> @stop()
 			.then ()-> @start(state)
 
@@ -37,6 +42,18 @@ class Nginx extends require('events')
 
 	updateConf: (conf='')->
 		fs.writeAsync '/etc/nginx/conf.d/default.conf', conf
+
+	followErrors: ()->
+		fs.file(ERROR_LOG)
+		@createTail()
+	
+	unfollowErrors: ()->
+		@tail?.unwatch()
+
+	createTail: ()-> unless @tail
+		@tail = new Tail(ERROR_LOG)
+		@tail.on 'line', console.log
+		@tail.on 'error', console.error
 
 
 module.exports = new Nginx
