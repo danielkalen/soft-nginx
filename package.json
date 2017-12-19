@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepublishOnly": "npm run build -s",
-    "postpublish": "git push && docker push",
+    "postpublish": "git push && npm run push",
     "build": "docker build . -t danielkalen/nginx",
     "push": "docker push danielkalen/nginx",
     "pull": "docker pull danielkalen/nginx",
