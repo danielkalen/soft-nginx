@@ -18,6 +18,7 @@ module.exports = ()->
 				.then (result)-> containers = result
 				.return hosts
 				.map (host)-> resolveHostData(host, containers)
+				.then (hosts)-> hosts.filter (host)-> host.id?
 
 		.catch promiseBreak.end
 
