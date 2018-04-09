@@ -5,7 +5,7 @@ nginx = require('which').sync 'nginx'
 isEqual = require 'sugar/object/isEqual'
 promiseEvent = require 'p-event'
 {Tail} = require 'tail'
-ERROR_LOG = '/var/log/nginx/error.log'
+{ERROR_LOG, CONF_FILE} = require './constants'
 
 class Nginx extends require('events')
 	constructor: ()->
@@ -41,7 +41,7 @@ class Nginx extends require('events')
 			.then @restart
 
 	updateConf: (conf='')->
-		fs.writeAsync '/etc/nginx/conf.d/default.conf', conf
+		fs.writeAsync CONF_FILE, conf
 
 	followErrors: ()->
 		fs.file(ERROR_LOG)

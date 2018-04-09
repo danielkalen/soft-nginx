@@ -2,7 +2,7 @@ fs = require 'fs-jetpack'
 memoize = require 'fast-memoize'
 regex = require './regex'
 dateFormat = require 'sugar/date/format'
-TEMPLATES = './config/template'
+{TEMPLATES} = require './constants'
 # indentString = require 'indent-string'
 # indentString(result, 1, indent:whitespace)
 
@@ -13,7 +13,7 @@ resolveTemplate = (target, data, hosts)->
 
 
 replace = (content, data, hosts)->
-	globals = datestamp:dateFormat(new Date, '%F')
+	globals = getGlobals()
 	
 	content.replace regex.placeholder, (e,placeholder)->
 		if placeholder[0] is '@'
@@ -25,6 +25,13 @@ replace = (content, data, hosts)->
 
 getTemplate = memoize (target)->
 	fs.readAsync "#{TEMPLATES}/#{target}.conf"
+
+getErrorPages = memoize ()->
+	fs.read "./config/misc/errorpages.conf"
+
+getGlobals = ()->
+	datestamp: dateFormat(new Date, '%F')
+	errorpages: getErrorPages()
 
 
 module.exports = resolveTemplate

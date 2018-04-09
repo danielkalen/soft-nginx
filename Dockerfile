@@ -16,5 +16,6 @@ RUN npm install
 COPY index.js index.js
 COPY config config
 COPY entrypoint entrypoint
+COPY error-pages error-pages
 
 CMD ["node", "index.js"]
