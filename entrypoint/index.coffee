@@ -6,6 +6,7 @@ chalk = require 'chalk'
 docker = require 'docker-promise'
 nginx = require './nginx'
 regex = require './regex'
+{CONF_FILE} = require './constants'
 
 Promise.resolve()
 	.then ()-> processFiles './config/conf.d'
@@ -24,6 +25,9 @@ Promise.resolve()
 		nginx.start(state).on 'exit', handleNginxExit
 		docker.events handleDockerEvent(state)
 		startLogRotate()
+
+		if process.env.SHOW_CONF
+			console.log chalk.dim(fs.read CONF_FILE)
 
 
 
