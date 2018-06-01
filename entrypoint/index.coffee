@@ -63,14 +63,22 @@ prepareConf = ()->
 		.then require './resolveHosts'
 		.then (result)-> hosts = result
 		.then require './prepareConfFile'
+		.tap (conf)-> console.log chalk.cyan(conf) if process.env.NGINX_OUTPUT_CONF
 		.then (conf)-> {hosts, conf}
 
 
 processFile = (path)->
 	Promise.resolve()
 		.then ()-> fs.readAsync path
+		.then (content)->
+			if path.endsWith('nginx.conf') and process.env.NGINX_DEBUG
+				return content.replace('warn', 'debug')
+			else
+				return content
+		
 		.then require './resolveImports'
 		.then require './resolveVariables'
+
 
 processFiles = (dir)->
 	Promise.resolve()
@@ -79,6 +87,7 @@ processFiles = (dir)->
 			name: file
 			path: "#{dir}/#{file}"
 			content: processFile("#{dir}/#{file}")
+
 
 filterDockerEvent = (event, hosts)->
 	event.Type is 'container' and

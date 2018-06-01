@@ -1,7 +1,7 @@
 fs = require 'fs-jetpack'
 execa = require 'execa'
 chalk = require 'chalk'
-nginx = require('which').sync 'nginx'
+nginx = require('which').sync if process.env.NGINX_DEBUG then 'nginx-debug' else 'nginx'
 isEqual = require 'sugar/object/isEqual'
 promiseEvent = require 'p-event'
 {Tail} = require 'tail'
