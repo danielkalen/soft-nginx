@@ -46,6 +46,7 @@ resolveHostData = (host, containers)->
 		.then (exists)-> promiseBreak() if not exists
 		.then ()-> fs.readAsync extraConf
 		.then (extra)-> host.extra = extra
+		.tapCatch {code:'EISDIR'}, (err)-> console.error "Your #{extraConf} file seems to be a directory and is invalid for use"
 		.catch promiseBreak.end
 		.return host
 

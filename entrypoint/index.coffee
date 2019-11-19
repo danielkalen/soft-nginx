@@ -1,4 +1,4 @@
-global.Promise = require 'bluebird'
+global.Promise = require('bluebird').config(longStackTraces:true)
 promiseBreak = require 'promise-break'
 fs = require 'fs-jetpack'
 execa = require 'execa'
@@ -28,6 +28,8 @@ Promise.resolve()
 
 		if process.env.SHOW_CONF
 			console.log chalk.dim(fs.read CONF_FILE)
+
+	.catch (err)-> console.error(err)
 
 
 
