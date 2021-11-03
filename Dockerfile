@@ -1,9 +1,9 @@
-FROM nginx:1.13
+FROM nginx:latest
 RUN rm /var/log/nginx/access.log /var/log/nginx/error.log
 RUN apt-get update &&\
 	apt-get install -y apt-transport-https lsb-release build-essential curl
 
-RUN curl -sL https://deb.nodesource.com/setup_9.x | bash - &&\
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - &&\
 	apt-get install -y nodejs
 
 WORKDIR /app/
